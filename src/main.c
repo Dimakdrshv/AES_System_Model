@@ -1,7 +1,9 @@
 #include "aes.h"
 #include "aes_key_expansion.h"
 #include "aes_constants.h"
+
 #include <stdio.h>
+#include <string.h>
 
 int main() {
     uint8_t aes_key[4*Nk];
@@ -42,19 +44,28 @@ int main() {
         printf("%02x ", in[i]);
     puts("");
 
-    uint8_t out[4*Nb];
+    uint8_t out_1[4*Nb];
+    uint8_t out_2[4*Nb];
 
-    Cipher(in, out, w);
+    Cipher(in, out_1, w);
     puts("Ciphertext:");
     for (size_t i = 0; i < 4*Nb; i++)
-        printf("%02x ", out[i]);
+        printf("%02x ", out_1[i]);
     puts("");
 
-    EqInvCipher(out, out, w);
+    memcpy(out_2, out_1, 4*Nb);
 
-    puts("Decrypted data:");
+    EqInvCipher(out_1, out_1, w);
+    InvCipher(out_2, out_2, w);
+
+    puts("Decrypted data by EqInvCipher function:");
     for (size_t i = 0; i < 4*Nb; i++)
-        printf("%02x ", out[i]);
+        printf("%02x ", out_1[i]);
+    puts("");
+
+    puts("Decrypted data by InvCipher function:");
+    for (size_t i = 0; i < 4*Nb; i++)
+        printf("%02x ", out_2[i]);
     puts("");
 
     return 0;
