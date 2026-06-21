@@ -6,6 +6,12 @@
 #include <string.h>
 
 int main() {
+    /*
+    * Simple interactive AES model example.
+    * Reads key and input block, performs encryption and decryption,
+    * and prints intermediate results.
+    */
+
     uint8_t aes_key[4*Nk];
 
     puts("Enter AES Key (16 bytes for AES-128, 24 bytes for AES-192, 32 bytes for AES-256) in hexadecimal format:");

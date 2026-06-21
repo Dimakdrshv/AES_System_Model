@@ -2,7 +2,7 @@
 #include "aes_constants.h"
 #include "aes_math.h"
 
-/* AES S-box lookup table */
+/* AES substitution box (S-box) */
 const uint8_t AES_SBOX[16][16] = {
     {0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76},
     {0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0},
@@ -22,6 +22,7 @@ const uint8_t AES_SBOX[16][16] = {
     {0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16}
 };
 
+/* Inverse AES substitution box */
 const uint8_t AES_INV_SBOX[16][16] = {
     {0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E, 0x81, 0xF3, 0xD7, 0xFB},
     {0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87, 0x34, 0x8E, 0x43, 0x44, 0xC4, 0xDE, 0xE9, 0xCB},
@@ -119,14 +120,19 @@ void InvShiftRows(uint8_t state[4][4]) {
 
 void MixColumns(uint8_t state[4][4]) {
 
-    /* The MixColumns transformation mixes the columns of the state matrix. Each column is treated as a polynomial and multiplied by a fixed polynomial. The transformation can be represented as follows:
+    /*
+    * MixColumns transformation.
+    *
+    * Each column of the State matrix is multiplied by the fixed polynomial
+    * a(x) = {03}x^3 + {01}x^2 + {01}x + {02}.
     *
     * | s'[0][c] |   | 02 03 01 01 |   | s[0][c] |
     * | s'[1][c] | = | 01 02 03 01 | * | s[1][c] |
     * | s'[2][c] |   | 01 01 02 03 |   | s[2][c] |
     * | s'[3][c] |   | 03 01 01 02 |   | s[3][c] |
     *
-    * where c is the column index (0 to 3) and s[i][c] is the byte in row i and column c of the state matrix.
+    * where c is the column index, and s[i][c] is the byte
+    * in row i and column c of the State matrix.
     */
     
     // zero column
@@ -163,14 +169,19 @@ void MixColumns(uint8_t state[4][4]) {
 }
 
 void InvMixColumns(uint8_t state[4][4]) {
-    /* The InvMixColumns transformation mixes the columns of the state matrix. Each column is treated as a polynomial and multiplied by a fixed polynomial. The transformation can be represented as follows:
+    
+    /*
+    * InvMixColumns transformation.
     *
+    * Each column of the State matrix is multiplied by the fixed polynomial
+    * a^-1(x) = {0b}x^3 + {0d}x^2 + {09}x + {0e}.
     * | s'[0][c] |   | 0e 0b 0d 09 |   | s[0][c] |
     * | s'[1][c] | = | 09 0e 0b 0d | * | s[1][c] |
     * | s'[2][c] |   | 0d 09 0e 0b |   | s[2][c] |
     * | s'[3][c] |   | 0b 0d 09 0e |   | s[3][c] |
     *
-    * where c is the column index (0 to 3) and s[i][c] is the byte in row i and column c of the state matrix.
+    * where c is the column index, and s[i][c] is the byte
+    * in row i and column c of the State matrix.
     */
 
     // zero column
@@ -207,14 +218,19 @@ void InvMixColumns(uint8_t state[4][4]) {
 }
 
 void InvMixWord(uint32_t w[Nb * (Nr + 1)], uint32_t dw[Nb * (Nr + 1)]) {
-    /* The InvMixWord transformation mixes the words. Each word is treated as a polynomial and multiplied by a fixed polynomial. The transformation can be represented as follows:
+    /*
+    * InvMixWord transformation.
+    *
+    * This function applies the InvMixColumns matrix to intermediate
+    * round key words. Each 32-bit word is treated as a column of four bytes:
     *
     * | w'[0][c] |   | 0e 0b 0d 09 |   | w[0][c] |
     * | w'[1][c] | = | 09 0e 0b 0d | * | w[1][c] |
     * | w'[2][c] |   | 0d 09 0e 0b |   | w[2][c] |
     * | w'[3][c] |   | 0b 0d 09 0e |   | w[3][c] |
     *
-    * where c is the column index (0 to 3) and w[i][c] is the byte in row i and column c of the word matrix.
+    * The first and last round keys are copied unchanged.
+    * This transformation is used for preparing round keys for EqInvCipher().
     */
 
     // For the first 4 words (the original key), we just copy them as they are not mixed
